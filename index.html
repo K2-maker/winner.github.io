@@ -3,77 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visitor Tracker</title>
+    <title>Visitor Tracker | Analytics</title>
     <style>
+        /* Modern Reset and Variables */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --primary: #2563eb;
-            --bg: #f8fafc;
-            --text: #1e293b;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass: rgba(255, 255, 255, 0.2);
+            --text-color: #ffffff;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gradient);
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            color: var(--text-color);
+            overflow: hidden;
         }
 
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        /* Glassmorphism Container */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            padding: 3rem;
             text-align: center;
-            max-width: 400px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            width: 90%;
+            max-width: 450px;
+            animation: fadeIn 1s ease-out;
         }
 
-        h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+        h1 {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
 
-        .counter-box {
-            background: var(--primary);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 0.5rem;
-            font-size: 2.5rem;
-            font-weight: bold;
+        /* The Big Counter Number */
+        .counter-value {
+            font-size: 5rem;
+            font-weight: 800;
+            margin: 10px 0;
+            background: #fff;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+        }
+
+        .label {
+            font-size: 1rem;
+            font-weight: 300;
+            opacity: 0.8;
+        }
+
+        /* Small Pulsing Dot for "Live" effect */
+        .live-indicator {
             display: inline-block;
-            margin: 1rem 0;
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px #4ade80;
+            animation: pulse 2s infinite;
         }
 
-        p { color: #64748b; font-size: 0.9rem; }
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>You Have Been Phished!</h1>
-        <div class="counter-box" id="count">...</div>
-        <p>Total unique visits tracked since launch.</p>
+    <div class="card">
+        <p class="label"><span class="live-indicator"></span>LIVE VISITOR STATS</p>
+        <div class="counter-value" id="count">000</div>
+        <h1>Unique Page Views</h1>
+        <p class="label" style="font-size: 0.8rem;">Data resets if namespace is changed.</p>
     </div>
 
     <script>
-        // Using GoatCounter or similar free APIs is best for static sites
-        // This example uses a public counting API
-        async function getVisitCount() {
-            const NAMESPACE = "khushi-project-2026"; // Change this to make it unique
-            const KEY = "visitor-counter";
+        async function updateCounter() {
+            // Using a persistent, free counting API
+            const namespace = "khushi_warwick_cyber_2026"; 
+            const key = "main_page";
+            const countElement = document.getElementById('count');
 
             try {
-                // Fetch incremented count from the API
-                const response = await fetch(`https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}`);
+                // We'll use the 'hit' endpoint which increments on every refresh
+                const response = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
                 const data = await response.json();
-                document.getElementById('count').innerText = data.value;
+                
+                // Animate the number counting up
+                animateNumber(countElement, 0, data.value, 1500);
             } catch (error) {
-                console.error("Error fetching count:", error);
-                document.getElementById('count').innerText = "1"; // Fallback
+                console.error("Counter Error:", error);
+                countElement.innerText = "Error";
             }
         }
 
-        getVisitCount();
+        function animateNumber(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start).toString().padStart(3, '0');
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        updateCounter();
     </script>
 </body>
 </html>
