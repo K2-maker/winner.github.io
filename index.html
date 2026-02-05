@@ -52,31 +52,50 @@
     </div>
 
     <script>
-        async function getVisitCount() {
-            // Using a more reliable 2026-stable service (Hylia/VisitorBadge)
-            // We use a dummy ID; in a real scenario, you'd use your URL
-            const siteID = "khushi-warwick-2026";
-            const counterUrl = `https://visitor-badge.laobi.icu/badge?page_id=${siteID}`;
-            
-            try {
-                // Since most badge APIs return an SVG, we'll simulate a count
-                // or use a more stable JSON-based provider like 'api.visitorbadge.io'
-                const response = await fetch(`https://api.visitorbadge.io/api/combined?path=${siteID}`);
-                const data = await response.json();
-                
-                // Usually returns { "total": 123, "unique": 45 }
-                document.getElementById('count').innerText = data.total || data.value || "1";
-            } catch (error) {
-                console.warn("Primary API failed, attempting fallback...");
-                // Simple localStorage fallback so YOU at least see your own count increasing
-                let localCount = localStorage.getItem('visit_count') || 0;
-                localCount = parseInt(localCount) + 1;
-                localStorage.setItem('visit_count', localCount);
-                document.getElementById('count').innerText = localCount;
-            }
-        }
+    // ====== PER-USER PHISH COUNT ======
+    let phishCount = localStorage.getItem("phish_count");
 
-        getVisitCount();
-    </script>
+    if (!phishCount) {
+        phishCount = 1;
+    } else {
+        phishCount = parseInt(phishCount) + 1;
+    }
+
+    localStorage.setItem("phish_count", phishCount);
+
+    // Update UI text
+    const title = document.querySelector("h1");
+    const label = document.querySelector(".label:last-of-type");
+
+    if (phishCount === 1) {
+        title.innerText = "You Have Been Phished!!!";
+        label.innerText = "First time? Happens to the best of us 😌";
+    } else {
+        title.innerText = "You Have Been Phished Again 😈";
+        label.innerText = `This is the number of times you have been phished: ${phishCount}`;
+    }
+
+    // ====== GLOBAL VISITOR COUNT (your existing logic) ======
+    async function getVisitCount() {
+        const siteID = "khushi-warwick-2026";
+
+        try {
+            const response = await fetch(
+                `https://api.visitorbadge.io/api/combined?path=${siteID}`
+            );
+            const data = await response.json();
+            document.getElementById("count").innerText =
+                data.total || data.value || "1";
+        } catch (error) {
+            let localCount = localStorage.getItem("visit_count") || 0;
+            localCount = parseInt(localCount) + 1;
+            localStorage.setItem("visit_count", localCount);
+            document.getElementById("count").innerText = localCount;
+        }
+    }
+
+    getVisitCount();
+</script>
+
 </body>
 </html>
